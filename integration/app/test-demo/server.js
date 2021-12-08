@@ -30,11 +30,13 @@ const server = require(protocol).createServer(
         request.method === 'POST' &&
         request.url.startsWith('/join?')
       ) {
+        // 参加したときに処理するAPI
         const query = url.parse(request.url, true).query;
         const title = query.title;
         const name = query.name;
         const region = query.region || 'us-east-1';
 
+        // 新規ミーティングの場合はchimeAPIを利用してミーティングの新規作成
         if (!meetingCache[title]) {
           meetingCache[title] = await chime
             .createMeeting({
@@ -44,6 +46,8 @@ const server = require(protocol).createServer(
             .promise();
           attendeeCache[title] = {};
         }
+        // レスポンス用のjoinInfoを作成すると同時に出席情報を登録している
+        // externalUserIdとして、今回はuuidで指定
         const joinInfo = {
           JoinInfo: {
             Title: title,
@@ -68,6 +72,8 @@ const server = require(protocol).createServer(
         request.method === 'GET' &&
         request.url.startsWith('/attendee?')
       ) {
+        // 出席情報を取得する
+        // 簡易的にattendeeCacheから問い合わせをしている
         const query = url.parse(request.url, true).query;
         const attendeeInfo = {
           AttendeeInfo: {
